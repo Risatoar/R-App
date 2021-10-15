@@ -1,13 +1,13 @@
-import styles from './index.module.scss';
-import { PageHeader, Tabs, Collapse, message, Form, Modal, Button } from 'antd';
-import { EditOutlined } from '@ant-design/icons';
-import { useRecoilState } from 'recoil';
-import { productState, dbState } from '@/models/game/menghuan/product';
-import ProductPanel from './Panel';
-import TabForm from './ModalFrom/Tab';
-import { uuid } from '@/utils';
-import useMounted from '@/hooks/useMounted';
-import usePersistCallback from '@/hooks/usePersistCallback';
+import styles from "./index.module.scss";
+import { PageHeader, Tabs, Collapse, message, Form, Modal, Button } from "antd";
+import { EditOutlined } from "@ant-design/icons";
+import { useRecoilState } from "recoil";
+import { productState, dbState } from "@/models/game/menghuan/product";
+import ProductPanel from "./Panel";
+import TabForm from "./ModalFrom/Tab";
+import { uuid } from "@/utils";
+import useMounted from "@/hooks/useMounted";
+import usePersistCallback from "@/hooks/usePersistCallback";
 
 const { Panel } = Collapse;
 const { TabPane } = Tabs;
@@ -18,10 +18,10 @@ const ProductManager = () => {
   const [tabForm] = Form.useForm();
 
   useMounted(() => {
-    db.onDataChange(setData);
+    db?.onDataChange(setData);
 
-    db.query({ where: '*' });
-  })
+    db?.query({ where: "*" });
+  });
 
   const onTabAdd = () => {
     tabForm.resetFields();
@@ -40,22 +40,22 @@ const ProductManager = () => {
           })),
         };
 
-        db.add({ where: '*' }, newTab)
+        db?.add({ where: "*" }, newTab);
       },
     });
   };
 
   const onTabDelete = (targetKey: string) => {
     if (data.length <= 1) {
-      message.error('已经是最后一个 tab 了');
+      message.error("已经是最后一个 tab 了");
       return;
     }
 
-    db.remove({ where: targetKey })
+    db?.remove({ where: targetKey });
   };
 
   const onEdit = usePersistCallback((targetKey: any, action: any) => {
-    if (action === 'add') {
+    if (action === "add") {
       onTabAdd();
       return;
     }
@@ -63,32 +63,34 @@ const ProductManager = () => {
   });
 
   return (
-    <div className={styles.container}>
+    <>
       <PageHeader title="商品管理" />
-      <Tabs type="editable-card" onEdit={onEdit}>
-        {data.map(({ id, name, data, activeTab }) => (
-          <TabPane tab={name} key={id}>
-            <Button title="修改 tab" type="primary">
-              <EditOutlined />
-              修改 tab
-            </Button>
-            <Collapse defaultActiveKey={activeTab || []}>
-              {data?.map(
-                ({ id: childKey, name: childName, data: childData }) => (
-                  <Panel key={childKey!} header={childName}>
-                    <ProductPanel
-                      tabKey={id}
-                      panelKey={childKey}
-                      data={childData}
-                    />
-                  </Panel>
-                ),
-              )}
-            </Collapse>
-          </TabPane>
-        ))}
-      </Tabs>
-    </div>
+      <div className={styles.container}>
+        <Tabs type="editable-card" onEdit={onEdit}>
+          {data.map(({ id, name, data, activeTab }) => (
+            <TabPane tab={name} key={id}>
+              <Button title="修改 tab" type="primary">
+                <EditOutlined />
+                修改 tab
+              </Button>
+              <Collapse defaultActiveKey={activeTab || []}>
+                {data?.map(
+                  ({ id: childKey, name: childName, data: childData }) => (
+                    <Panel key={childKey!} header={childName}>
+                      <ProductPanel
+                        tabKey={id}
+                        panelKey={childKey}
+                        data={childData}
+                      />
+                    </Panel>
+                  )
+                )}
+              </Collapse>
+            </TabPane>
+          ))}
+        </Tabs>
+      </div>
+    </>
   );
 };
 
