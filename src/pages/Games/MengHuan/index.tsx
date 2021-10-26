@@ -1,13 +1,22 @@
-import styles from './index.module.scss';
-import AutoSpeak from './Speak';
-import ProductManager from './ProductManager';
+import styles from "./index.module.scss";
+import AutoSpeak from "./Speak";
+import ProductManager from "./ProductManager";
+import ProductAnalysis from "./ProductAnalysis";
+import { PageHeader } from "antd";
+import { useHistory } from "react-router-dom";
 
 const MengHuanCenter = () => {
+  const history = useHistory();
+
   return (
-    <div className={styles.container}>
-      <AutoSpeak />
-      <ProductManager />
-    </div>
+    <>
+      <PageHeader title="梦幻西游" onBack={() => history.goBack()} />
+      <div className={styles.container}>
+        <AutoSpeak />
+        <ProductManager />
+        <ProductAnalysis />
+      </div>
+    </>
   );
 };
 

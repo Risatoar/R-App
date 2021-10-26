@@ -19,6 +19,7 @@ const ProductPanel = ({
   const [db] = useRecoilState(dbState);
 
   const onCreate = (data: any) => {
+    console.log(data, 'data')
     db?.add({ where: `${tabKey}.${panelKey}` }, {
       name: data.name,
       id: uuid(),
@@ -27,8 +28,13 @@ const ProductPanel = ({
       tags: data.tags || [],
       createAt: Date.now(),
       lastSelectedAt: 0,
+      similarCoverImages: [],
     })
   };
+
+  const onUpdate = (data: any, id: string) => {
+    db?.update({ where: `${tabKey}.${panelKey}.${id}` }, data)
+  }
 
   const onDelete = (id?: string) => {
     db?.remove({ where: `${tabKey}.${panelKey}.${id}` })
@@ -38,7 +44,7 @@ const ProductPanel = ({
     <div className={styles.panel}>
       <Space align="start">
         {data.map((data) => (
-          <PanelItem data={data} key={data?.id} onDelete={onDelete} />
+          <PanelItem data={data} key={data?.id} onUpdate={onUpdate} onDelete={onDelete} />
         ))}
         <PanelItem isCreate={true} onCreate={onCreate} />
       </Space>

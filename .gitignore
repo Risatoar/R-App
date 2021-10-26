@@ -12,6 +12,8 @@
 
 # production
 /build
+app-win32-x64/
+Risatoar-darwin-x64/
 
 # misc
 .DS_Store

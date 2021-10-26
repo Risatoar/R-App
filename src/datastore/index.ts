@@ -1,9 +1,10 @@
-import _, { cloneDeep, merge, orderBy } from 'lodash';
+import _, { cloneDeep, merge, orderBy } from "lodash";
 /* eslint-disable no-loop-func */
-import FileReader, { FileReaderProps } from '@/utils/file-reader';
+import FileReader, { FileReaderProps } from "@/utils/file-reader";
 
-export interface DataStoreProps<T extends any[]> extends Omit<FileReaderProps, 'defaultValue'> {
-  initialValue: T,
+export interface DataStoreProps<T extends any[]>
+  extends Omit<FileReaderProps, "defaultValue"> {
+  initialValue: T;
 }
 
 export interface DataStoreInstance {
@@ -15,18 +16,18 @@ export interface DataStoreInstance {
 }
 
 type QueryConfig = {
-  where?: '*' | string;
+  where?: "*" | string;
   limit?: number;
   offset?: number;
   orderBy?: string;
-  order?: 'asc' | "desc";
-}
+  order?: "asc" | "desc";
+};
 
 type ModifyConfig = {
   updateValue?: any;
   addValue?: any;
   remove?: boolean;
-}
+};
 
 type UpdateConfig = {
   where?: string;
@@ -43,12 +44,19 @@ export default class RStore<T extends any[]> {
     this.db = [] as unknown as T;
   }
 
-
-  private create({ filename, dirPath, initialValue }: { filename: string, dirPath: string, initialValue: T }) {
+  private create({
+    filename,
+    dirPath,
+    initialValue,
+  }: {
+    filename: string;
+    dirPath: string;
+    initialValue: T;
+  }) {
     this.fileReader = new FileReader({
       dirPath,
       filename,
-      defaultValue: JSON.stringify(initialValue)
+      defaultValue: JSON.stringify(initialValue),
     });
 
     this.fileReader?.read();
@@ -56,13 +64,13 @@ export default class RStore<T extends any[]> {
     this.fileReader?.on((data: string) => {
       this.db = JSON.parse(data) || [];
       this.dbChangeListener?.(this.db);
-    })
+    });
   }
 
   private updateDataSource(value: any) {
     this.db = value;
 
-    this.fileReader?.write(JSON.stringify(this.db))
+    this.fileReader?.write(JSON.stringify(this.db));
   }
 
   public onDataChange(callback: (data: any) => void) {
@@ -74,10 +82,10 @@ export default class RStore<T extends any[]> {
     const dataSource = cloneDeep(this.db);
     let parent = dataSource;
 
-    if (config.where === '*') {
+    if (config.where === "*") {
       queryTarget = dataSource;
     } else {
-      const searchPaths = config.where?.split('.');
+      const searchPaths = config.where?.split(".");
 
       let idx = 0;
       let cursor = dataSource;
@@ -106,10 +114,14 @@ export default class RStore<T extends any[]> {
       queryTarget = cursor;
     }
 
+    this.fileReader?.read();
+
     if (!Array.isArray(queryTarget)) {
       if (modify?.remove) {
-        const targetIdx = parent.findIndex(({ id }) => id === (queryTarget as any).id)
-        
+        const targetIdx = parent.findIndex(
+          ({ id }) => id === (queryTarget as any).id
+        );
+
         if (targetIdx !== -1) {
           parent.splice(targetIdx, 1);
         }
@@ -123,7 +135,9 @@ export default class RStore<T extends any[]> {
     }
 
     if (modify?.addValue) {
-      (Array.isArray(queryTarget) ? queryTarget : parent).push(modify?.addValue);
+      (Array.isArray(queryTarget) ? queryTarget : parent).push(
+        modify?.addValue
+      );
 
       this.updateDataSource(dataSource);
       return;
@@ -134,21 +148,35 @@ export default class RStore<T extends any[]> {
     }
 
     if (config.limit) {
-      queryTarget = (queryTarget as any[]).slice(config?.offset || 0, config?.limit);
+      queryTarget = (queryTarget as any[]).slice(
+        config?.offset || 0,
+        config?.limit
+      );
     }
 
     return queryTarget;
   }
 
   public add(config: UpdateConfig, value: any) {
-    this.query(config, { addValue: value })
+    this.query(config, {
+      addValue: {
+        ...value,
+        createAt: Date.now(),
+        updateAt: Date.now(),
+      },
+    });
   }
 
   public update(config: UpdateConfig, value: any) {
-    this.query(config, { updateValue: value });
+    this.query(config, {
+      updateValue: {
+        ...value,
+        updateAt: Date.now(),
+      },
+    });
   }
 
   public remove(config: UpdateConfig) {
-    this.query(config, { remove: true })
+    this.query(config, { remove: true });
   }
 }

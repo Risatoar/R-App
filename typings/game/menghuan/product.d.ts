@@ -3,9 +3,11 @@ declare namespace game_mh_product {
     id?: string;
     name?: string;
     coverImage?: string;
+    similarCoverImages?: string[];
     price?: string;
     tags?: string[];
     createAt?: number;
+    updateAt?: number;
     lastSelectedAt?: number;
   }
 
@@ -13,6 +15,8 @@ declare namespace game_mh_product {
     id?: string;
     name?: string;
     data?: Product[];
+    createAt?: number;
+    updateAt?: number;
   }
 
   export interface ProductTab {
@@ -20,6 +24,8 @@ declare namespace game_mh_product {
     name?: string;
     activeTab?: string[];
     data?: ProductPanel[];
+    createAt?: number;
+    updateAt?: number;
   }
 
   export type ProductDataSource = ProductTab[];
