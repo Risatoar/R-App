@@ -4,7 +4,7 @@
 
 ## 应用
 
-技术栈 React + Typescript + Electron
+技术栈 React + Typescript + Electron + Rx + Recoil，
 数据持久化没用开源库，自己整了个操作本地 json 文件的 db 方法
 
 ```typescript
