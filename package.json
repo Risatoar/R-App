@@ -94,16 +94,17 @@
     "webpack": "4.44.2",
     "webpack-dev-server": "3.11.1",
     "webpack-manifest-plugin": "2.2.0",
-    "workbox-webpack-plugin": "5.1.4"
+    "workbox-webpack-plugin": "5.1.4",
+    "iohook": "^0.9.3"
   },
   "scripts": {
     "dev": "concurrently \"electron . --debug\" \"node scripts/start.js\"",
-    "dev:electron": "electron . --debug",
-    "start": "node scripts/start.js",
-    "build": "node scripts/build.js",
+    "dev:electron": "NODE_ENV=development electron . --debug",
+    "start": "NODE_ENV=development node scripts/start.js",
+    "build": "NODE_ENV=production node scripts/build.js",
     "rebuild": "npm rebuild --runtime=electron --target=8.5.5 --disturl=https://atom.io/download/atom-shell --abi=76",
-    "package": " concurrently \"node scripts/build.js\" \"electron-packager . Risatoar --overwrite\"",
-    "package:win": "electron-packager . --platform=win32 --arch=x64 --overwrite",
+    "package": "NODE_ENV=production concurrently \"node scripts/build.js\" \"electron-packager . Risatoar --overwrite\"",
+    "package:win": "NODE_ENV=production electron-packager . --platform=win32 --arch=x64 --overwrite",
     "test": "node scripts/test.js"
   },
   "eslintConfig": {
@@ -196,7 +197,6 @@
     ]
   },
   "devDependencies": {
-    "@types/react-router-dom": "^5.3.1",
-    "iohook": "^0.9.3"
+    "@types/react-router-dom": "^5.3.1"
   }
 }

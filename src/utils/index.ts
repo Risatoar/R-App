@@ -1,4 +1,5 @@
 import { IpcRenderer } from "electron";
+import { fromEventPattern, takeWhile, scan, map } from "rxjs";
 
 export const isElectron = navigator.userAgent.includes("Electron");
 
@@ -11,42 +12,55 @@ export const uuid = () =>
     const r = (Math.random() * 16) | 0;
     return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
   });
-class IpcCommunication {
-  loops: Map<string, undefined | ((...args: any[]) => void)>;
 
-  constructor() {
-    this.loops = new Map();
+export const ipcObserver = ({
+  type,
+  extraMap,
+  eventId,
+}: {
+  type: string;
+  eventId?: string;
+  extraMap: Record<string, any>;
+}) => {
+  const evtId = eventId || uuid();
 
-    this.registerIpcListener();
-  }
+  const $replyStream = fromEventPattern(
+    (handler) => {
+      ipcRenderer?.on("asynchronous-reply", handler);
+    },
+    (handler) => {
+      ipcRenderer?.off("asynchronous-reply", handler);
+    }
+  );
 
-  private registerIpcListener() {
-    ipcRenderer?.on('asynchronous-reply', (evt, replay) => {
-      if (replay.eventId && this.loops.has(replay.eventId)) {
-        this.loops.get(replay.eventId)?.(replay.data);
+  ipcRenderer?.send("asynchronous-message", {
+    type,
+    extraMap,
+    eventId: evtId,
+  });
 
-        if (!replay.keepalive) {
-          this.loops.delete(replay.eventId);
-        }
+  const $reply = $replyStream.pipe(
+    scan(
+      (acc, x, index) => ({
+        index,
+        data: x as any,
+      }),
+      { index: 0, data: undefined }
+    ),
+    takeWhile(({ index, data }) => {
+      if ((data as unknown as any[])[1]?.eventId !== evtId) {
+        return false;
       }
-    })
-  }
 
-  emit({ type, extraMap, callback }: {
-    type: string;
-    extraMap: Record<string, any>;
-    callback?: (...args: any[]) => void;
-  }) {
-    const evtId = uuid();
+      const resp = (data as unknown as any[])[1];
 
-    ipcRenderer?.send('asynchronous-message', {
-      type,
-      extraMap,
-      eventId: evtId,
-    })
+      if ((resp?.data as any)?.keepalive) {
+        return true;
+      }
+      return index < 1;
+    }),
+    map((x: any) => x.data[1].data)
+  );
 
-    this.loops.set(evtId, callback)
-  }
-}
-
-export const ipcCommunication = new IpcCommunication();
+  return $reply;
+};

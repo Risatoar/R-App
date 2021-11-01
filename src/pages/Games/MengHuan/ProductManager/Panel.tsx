@@ -19,7 +19,6 @@ const ProductPanel = ({
   const [db] = useRecoilState(dbState);
 
   const onCreate = (data: any) => {
-    console.log(data, 'data')
     db?.add({ where: `${tabKey}.${panelKey}` }, {
       name: data.name,
       id: uuid(),

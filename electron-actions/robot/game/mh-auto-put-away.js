@@ -1,7 +1,7 @@
 /* eslint-disable no-loop-func */
-const iohook = require("iohook");
 const robotjs = require("robotjs");
 const { Notification } = require("electron");
+const getAxisStream = require("../../utils/manual-axis");
 
 const onMHAutoPutAway = (
   {
@@ -96,9 +96,6 @@ const onMHAutoPutAway = (
 
 const onMHAreaSelect = (area, callback) => {
   if (area === "package") {
-    let res = [];
-    let canNotice = true;
-
     const notice = new Notification({
       title: "请选择背包坐标",
       body: "需要点击背包左上角和右下角",
@@ -106,35 +103,12 @@ const onMHAreaSelect = (area, callback) => {
 
     notice.show();
 
-    iohook.on("mouseclick", (evt) => {
-      if (res.length < 2) {
-        if (res.length === 0) {
-          notice.title = "请点击右下角坐标";
-          notice.body = `已选择左上角坐标：x: ${evt.x}, y: ${evt.y}`;
-          notice.show();
-        }
-        res.push({ x: evt.x, y: evt.y });
-      }
-
-      if (res.length >= 2) {
-        if (canNotice) {
-          notice.title = "选择成功";
-          notice.body = `左上角坐标：x: ${res[0].x}, y: ${res[0].y}\n左上角坐标：x: ${res[1].x}, y: ${res[1].y}`;
-          notice.show();
-          canNotice = false;
-        }
-        callback(res);
-      }
+    getAxisStream("doubleClick").subscribe((x) => {
+      callback(x);
     });
-
-    iohook.start();
   } else {
-    let hasRes = false;
-    iohook.on("mouseclick", (evt) => {
-      if (!hasRes) {
-        hasRes = true;
-        callback({ x: evt.x, y: evt.y });
-      }
+    getAxisStream("click").subscribe((x) => {
+      callback(x);
     });
   }
 };
