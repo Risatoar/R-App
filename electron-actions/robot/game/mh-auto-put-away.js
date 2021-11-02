@@ -1,8 +1,9 @@
 /* eslint-disable no-loop-func */
-const iohook = require("iohook");
 const robotjs = require("robotjs");
 const { Notification } = require("electron");
+const getAxisStream = require("../../utils/manual-axis");
 
+// TODO 啥时候有空处理下多线程监听键盘事件禁用，转为多线程流式控制
 const onMHAutoPutAway = (
   {
     data = [],
@@ -23,7 +24,7 @@ const onMHAutoPutAway = (
     for (const pro of data) {
       const { index, price } = pro;
 
-      const progressResp = (progress, message) => {
+      const progressResp = (progress, message, fn) => {
         cb(
           {
             targetIdx: idx,
@@ -34,6 +35,8 @@ const onMHAutoPutAway = (
           },
           { keepalive: true }
         );
+
+        fn();
       };
 
       const col = Math.floor(index / 5);
@@ -44,48 +47,25 @@ const onMHAutoPutAway = (
 
       progressResp(
         0,
-        `当前正在操作商品 ${index}，对应坐标：x - ${x}，y - ${y}`
+        `当前正在操作商品 ${index}，对应坐标：x - ${x}，y - ${y}`,
+        () => robotjs.moveMouse(x, y)
       );
 
-      robotjs.moveMouse(x, y);
+      progressResp(1, "点击商品", () => robotjs.mouseClick());
 
-      console.log(`当前正在操作商品 ${index}，对应坐标：x - ${x}，y - ${y}`);
+      progressResp(2, "移动鼠标到价格输入框", () =>
+        robotjs.moveMouse(priceInputOffset[0], priceInputOffset[1])
+      );
 
-      progressResp(1, "点击商品");
+      progressResp(3, "选中价格输入框", () => robotjs.mouseClick("left", true));
 
-      robotjs.mouseClick();
+      progressResp(4, "输入价格", () => robotjs.typeString(price));
 
-      console.log("点击商品");
+      progressResp(5, "移动鼠标到上架按钮", () =>
+        robotjs.moveMouse(confirmBtnOffset[0], confirmBtnOffset[1])
+      );
 
-      progressResp(2, "移动鼠标到价格输入框");
-
-      robotjs.moveMouse(priceInputOffset[0], priceInputOffset[1]);
-
-      console.log("移动鼠标到价格输入框");
-
-      progressResp(3, "选中价格输入框");
-
-      robotjs.mouseClick();
-
-      console.log("选中价格输入框");
-
-      progressResp(4, "输入价格");
-
-      robotjs.typeString(price);
-
-      console.log("输入价格");
-
-      progressResp(5, "移动鼠标到上架按钮");
-
-      robotjs.moveMouse(confirmBtnOffset[0], confirmBtnOffset[1]);
-
-      console.log("移动鼠标到上架按钮");
-
-      progressResp(6, "上架");
-
-      robotjs.mouseClick();
-
-      console.log("上架\n");
+      progressResp(6, "上架", () => robotjs.mouseClick());
 
       idx++;
     }
@@ -96,9 +76,6 @@ const onMHAutoPutAway = (
 
 const onMHAreaSelect = (area, callback) => {
   if (area === "package") {
-    let res = [];
-    let canNotice = true;
-
     const notice = new Notification({
       title: "请选择背包坐标",
       body: "需要点击背包左上角和右下角",
@@ -106,36 +83,9 @@ const onMHAreaSelect = (area, callback) => {
 
     notice.show();
 
-    iohook.on("mouseclick", (evt) => {
-      if (res.length < 2) {
-        if (res.length === 0) {
-          notice.title = "请点击右下角坐标";
-          notice.body = `已选择左上角坐标：x: ${evt.x}, y: ${evt.y}`;
-          notice.show();
-        }
-        res.push({ x: evt.x, y: evt.y });
-      }
-
-      if (res.length >= 2) {
-        if (canNotice) {
-          notice.title = "选择成功";
-          notice.body = `左上角坐标：x: ${res[0].x}, y: ${res[0].y}\n左上角坐标：x: ${res[1].x}, y: ${res[1].y}`;
-          notice.show();
-          canNotice = false;
-        }
-        callback(res);
-      }
-    });
-
-    iohook.start();
+    getAxisStream("doubleClick").subscribe(callback);
   } else {
-    let hasRes = false;
-    iohook.on("mouseclick", (evt) => {
-      if (!hasRes) {
-        hasRes = true;
-        callback({ x: evt.x, y: evt.y });
-      }
-    });
+    getAxisStream("click").subscribe(callback);
   }
 };
 

@@ -1,4 +1,4 @@
-import { ipcCommunication, uuid } from "@/utils";
+import { ipcObserver, uuid } from "@/utils";
 import { UploadOutlined } from "@ant-design/icons";
 import { Upload, UploadProps } from "antd";
 import { CSSProperties, useMemo, ReactNode } from "react";
@@ -6,7 +6,7 @@ import { CSSProperties, useMemo, ReactNode } from "react";
 interface LocalFileUploaderProps {
   onChange?: (paths: string[] | string) => void;
   listType?: UploadProps["listType"];
-  value?: string[],
+  value?: string[];
   multiple?: boolean;
   style?: CSSProperties;
   children?: ReactNode;
@@ -24,7 +24,7 @@ const LocalFileUploader = ({
   children,
   accept,
   className,
-  deleteCacheDuration = 0
+  deleteCacheDuration = 0,
 }: LocalFileUploaderProps) => {
   const fileList = useMemo(() => {
     return (Array.isArray(value) ? value : [value]).map((val: string) => ({
@@ -38,35 +38,35 @@ const LocalFileUploader = ({
   const beforeUpload = (file: any) => {
     const storeKey = uuid();
 
-    ipcCommunication.emit({
-      type: 'upload-file',
+    ipcObserver({
+      type: "upload-file",
       extraMap: {
         name: file.name,
         path: file.path,
         storeKey,
       },
-      callback: (res) => {
-        onChange?.(multiple ? [res as string] : res);
+    }).subscribe((res) => {
+      onChange?.(multiple ? [res as string] : res);
 
-        if (deleteCacheDuration) {
-          setTimeout(() => {
-            ipcCommunication.emit({
-              type: 'file-delete',
-              extraMap: {
-                storeKey: multiple ? storeKey : [storeKey],
-                isCache: true,
-              }
-            })
-          }, deleteCacheDuration);
-        }
+      if (deleteCacheDuration) {
+        setTimeout(() => {
+          ipcObserver({
+            type: "file-delete",
+            extraMap: {
+              storeKey: multiple ? storeKey : [storeKey],
+              isCache: true,
+            },
+          }).subscribe();
+        }, deleteCacheDuration);
       }
-    })
+    });
   };
 
   const onUploadChange = (file: any) => {
-
-    onChange?.((file?.fileList as Array<{ url: string }>).map(({ url }) => url)!)
-  }
+    onChange?.(
+      (file?.fileList as Array<{ url: string }>).map(({ url }) => url)!
+    );
+  };
 
   return (
     <Upload.Dragger

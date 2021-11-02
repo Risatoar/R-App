@@ -6,8 +6,10 @@ const {
   deleteFile,
 } = require("./file-manager");
 const onKeyboardAutoActionStart = require("./robot");
+const getAxisByManual = require('./utils/manual-axis');
 
 const registerMainIpc = () => {
+  getAxisByManual('doubleClick');
   ipcMain.on("asynchronous-message", (evt, args) => {
     const { type, extraMap, eventId } = args;
 
@@ -35,7 +37,7 @@ const registerMainIpc = () => {
             type,
             data: res,
             eventId,
-            ...config
+            ...config,
           });
         };
         onKeyboardAutoActionStart(extraMap, cb);

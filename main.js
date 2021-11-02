@@ -3,7 +3,6 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 const url = require("url");
 const registerMainIpc = require("./electron-actions");
-const abi = require('node-abi');
 
 // 保持window对象的全局引用,避免JavaScript对象被垃圾回收时,窗口被自动关闭.
 let mainWindow;
@@ -22,7 +21,7 @@ function createWindow() {
     },
   });
 
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV !== "development") {
     mainWindow.loadURL(
       url.format({
         pathname: path.join(__dirname, "./build/index.html"),

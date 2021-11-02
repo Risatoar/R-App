@@ -1,4 +1,4 @@
-import { uuid, ipcRenderer } from '.';
+import { uuid, ipcRenderer, ipcObserver } from '.';
 
 export interface FileReaderProps {
   filename: string;

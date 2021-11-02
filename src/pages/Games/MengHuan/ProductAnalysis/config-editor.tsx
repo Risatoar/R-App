@@ -3,7 +3,7 @@ import {
   analysisState,
   analysisStatusState,
 } from "@/models/game/menghuan/analysis";
-import { ipcCommunication, ipcRenderer } from "@/utils";
+import { ipcObserver, ipcRenderer } from "@/utils";
 import { Form, Button, Tag, Row, Steps, Col, message as Message } from "antd";
 import classNames from "classnames";
 import { useEffect, useState } from "react";
@@ -68,7 +68,7 @@ const ConfigEditor = () => {
       return;
     }
 
-    ipcCommunication.emit({
+    ipcObserver({
       type: "auto-keyboard",
       extraMap: {
         type: "mh-auto-put-away",
@@ -77,35 +77,29 @@ const ConfigEditor = () => {
           data,
         },
       },
-      callback: (res) => {
-        if (res.finish) {
-          setStartPutAway(true);
-          Message.success("上架完成！！");
-          return;
-        }
+    }).subscribe((res) => {
+      if (res.finish) {
+        setStartPutAway(true);
+        Message.success("上架完成！！");
+        return;
+      }
 
-        if (res.totalProgress) {
-          setProgress((prev) => ({ ...prev, total: res.totalProgress }));
-          return;
-        }
+      if (res.totalProgress) {
+        setProgress((prev) => ({ ...prev, total: res.totalProgress }));
+        return;
+      }
 
-        const {
-          target,
-          targetIdx,
-          childProgress,
-          totalChildProgress,
-          message,
-        } = res;
+      const { target, targetIdx, childProgress, totalChildProgress, message } =
+        res;
 
-        setProgress((prev) => ({
-          ...prev,
-          progress: (targetIdx * 6 + childProgress) / prev.total,
-          target,
-          message,
-          step: targetIdx,
-          stepProgress: childProgress / totalChildProgress,
-        }));
-      },
+      setProgress((prev) => ({
+        ...prev,
+        progress: (targetIdx * 6 + childProgress) / prev.total,
+        target,
+        message,
+        step: targetIdx,
+        stepProgress: childProgress / totalChildProgress,
+      }));
     });
   };
 
@@ -116,28 +110,26 @@ const ConfigEditor = () => {
       event: "hide",
     });
 
-    ipcCommunication.emit({
+    ipcObserver({
       type: "auto-keyboard",
       extraMap: {
         type: "mh-auto-area-select",
         area: filed,
       },
-      callback: (res) => {
-        console.log(form.getFieldsValue(), "form.getFieldsValue()");
+    }).subscribe((res) => {
+      form.setFieldsValue({
+        [filed]: res,
+      });
+      if (filed === "package") {
+        const xSize = Math.abs(res[0].x - res[1].x) / 5;
+        const ySize = Math.abs(res[0].y - res[1].y) / 4;
         form.setFieldsValue({
-          [filed]: res,
+          productSize: [xSize, ySize],
         });
-        if (filed === "package") {
-          const xSize = Math.abs(res[0].x - res[1].x) / 5;
-          const ySize = Math.abs(res[0].y - res[1].y) / 4;
-          form.setFieldsValue({
-            productSize: [xSize, ySize],
-          });
-        }
-        ipcRenderer?.send("window-change-event", {
-          event: "show",
-        });
-      },
+      }
+      ipcRenderer?.send("window-change-event", {
+        event: "show",
+      });
     });
   };
 
@@ -170,10 +162,10 @@ const ConfigEditor = () => {
                 <Form.Item name="package">
                   <Row>
                     <Tag color="orange">
-                      左上角坐标 x: {axis[0]?.x || 0}, y: {axis[1]?.y || 0}
+                      左上角坐标 x: {axis[0]?.x || 0}, y: {axis[0]?.y || 0}
                     </Tag>
                     <Tag color="orange">
-                      右下角坐标 x: {axis[1]?.x || 0}, y: {axis[2]?.y || 0}
+                      右下角坐标 x: {axis[1]?.x || 0}, y: {axis[1]?.y || 0}
                     </Tag>
                   </Row>
                 </Form.Item>
