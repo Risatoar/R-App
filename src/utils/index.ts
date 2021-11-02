@@ -41,23 +41,20 @@ export const ipcObserver = ({
 
   const $reply = $replyStream.pipe(
     scan(
-      (acc, x, index) => ({
+      (__, x, index) => ({
         index,
         data: x as any,
       }),
       { index: 0, data: undefined }
     ),
     takeWhile(({ index, data }) => {
-      if ((data as unknown as any[])[1]?.eventId !== evtId) {
+      const mainData = (data as unknown as any[])[1];
+
+      if (mainData?.eventId !== evtId) {
         return false;
       }
 
-      const resp = (data as unknown as any[])[1];
-
-      if ((resp?.data as any)?.keepalive) {
-        return true;
-      }
-      return index < 1;
+      return mainData?.keepalive || index < 1;
     }),
     map((x: any) => x.data[1].data)
   );
