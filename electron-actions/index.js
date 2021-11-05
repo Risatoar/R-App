@@ -6,11 +6,12 @@ const {
   deleteFile,
 } = require("./file-manager");
 const onKeyboardAutoActionStart = require("./robot");
-const getAxisByManual = require('./utils/manual-axis');
+const getAxisByManual = require("./utils/manual-axis");
+const fetch = require("./fetch");
 
 const registerMainIpc = () => {
-  getAxisByManual('doubleClick');
-  ipcMain.on("asynchronous-message", (evt, args) => {
+  getAxisByManual("doubleClick");
+  ipcMain.on("asynchronous-message", async (evt, args) => {
     const { type, extraMap, eventId } = args;
 
     switch (type) {
@@ -53,6 +54,30 @@ const registerMainIpc = () => {
 
       case "file-delete":
         deleteFile(extraMap);
+        break;
+
+      case "fetch":
+        try {
+          const resp = await fetch(extraMap);
+
+          evt.sender.send("asynchronous-reply", {
+            type,
+            data: {
+              data: resp?.data,
+              success: true,
+            },
+            eventId,
+          });
+        } catch (error) {
+          evt.sender.send("asynchronous-reply", {
+            type,
+            data: {
+              success: false,
+              errMsg: String(error),
+            },
+            eventId,
+          });
+        }
         break;
 
       default:

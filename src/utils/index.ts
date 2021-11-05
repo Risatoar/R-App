@@ -61,3 +61,25 @@ export const ipcObserver = ({
 
   return $reply;
 };
+
+export const nodeFetch = (config: {
+  data: any;
+  url: string;
+  method: "GET" | "POST";
+  baseUrl: string;
+  headers: any;
+}) =>
+  new Promise((resolve, reject) => {
+    ipcObserver({
+      type: "fetch",
+      extraMap: {
+        ...config,
+      },
+    }).subscribe((x) => {
+      if (x?.success) {
+        resolve(x.data);
+      } else {
+        reject(new Error(x?.errMsg));
+      }
+    });
+  });

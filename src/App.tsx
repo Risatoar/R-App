@@ -1,11 +1,13 @@
-import Home from '@/pages/Home';
-import { Switch, Route, BrowserRouter } from 'react-router-dom';
-import Tabs from '@/components/module/Tabs';
-import GamesCenter from '@/pages/Games';
-import MengHuanCenter from './pages/Games/MengHuan';
-import styles from './App.module.scss';
-import 'antd/dist/antd.css';
-import { RecoilRoot } from 'recoil';
+import Home from "@/pages/Home";
+import { Switch, Route, BrowserRouter } from "react-router-dom";
+import Tabs from "@/components/module/Tabs";
+import GamesCenter from "@/pages/Games";
+import MengHuanCenter from "./pages/Games/MengHuan";
+import FinanceCenter from "./pages/Finance";
+import FeatureGoods from "./pages/Finance/FeatureGoods";
+import styles from "./App.module.scss";
+import "antd/dist/antd.css";
+import { RecoilRoot } from "recoil";
 
 function App() {
   return (
@@ -23,6 +25,12 @@ function App() {
               </Route>
               <Route path="/game/menghuan" exact={true}>
                 <MengHuanCenter />
+              </Route>
+              <Route path="/finance" exact={true}>
+                <FinanceCenter />
+              </Route>
+              <Route path="/finance/fg" exact={true}>
+                <FeatureGoods />
               </Route>
             </div>
           </div>

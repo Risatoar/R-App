@@ -12,5 +12,11 @@ export const TAB_DATA_SOURCE = [
     path: '/game',
     Icon: RocketOutlined,
     name: '游戏中心'
+  },
+  {
+    key: 'finance',
+    path: '/finance',
+    Icon: RocketOutlined,
+    name: '金融'
   }
 ];

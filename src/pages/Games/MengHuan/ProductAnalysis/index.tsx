@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/alt-text */
-import { Col, PageHeader, Row, Space } from "antd";
+import { Col, PageHeader } from "antd";
 import styles from "./index.module.scss";
 import ConfigEditor from "./config-editor";
 import AnalysisResult from "./analysis-result";
