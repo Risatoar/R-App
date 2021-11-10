@@ -2,9 +2,6 @@ import { Http } from "..";
 
 const request = new Http({
   baseURL: "https://api.jijinhao.com",
-  headers: {
-    Referer: "https://quote.cngold.org/",
-  },
 });
 
 // 获取当前价格情况
